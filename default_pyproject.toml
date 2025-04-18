@@ -1,0 +1,43 @@
+[tool.gitag]
+
+# Strategy to determine which commits to include for version bump
+# Options:
+# - "auto": if HEAD is a merge commit, only include feature branch commits
+# - "always": include all commits since the last tag
+# - "merge_only": only include feature branch commits from the merge
+merge_strategy = "auto"
+
+# Optional prefix added before the version tag, e.g. "v1.2.3"
+prefix = "v"
+
+# Optional suffix added after the version, e.g. "1.2.3-beta"
+suffix = ""
+
+# Regex pattern to match semantic versioning with named groups
+# Groups: major, minor, patch, (optional: prerelease, buildmetadata)
+version_pattern = "^v?(\\d+)\\.(\\d+)\\.(\\d+)(?:-([\\w\\.]+))?(?:\\+([\\w\\.]+))?$"
+
+[tool.gitag.bump_keywords]
+
+# Keywords that trigger a MAJOR bump
+major = [
+  "BREAKING CHANGE"
+]
+
+# Keywords that trigger a MINOR bump
+minor = [
+  "feat:"
+]
+
+# Keywords that trigger a PATCH bump
+patch = [
+  "fix:",
+  "perf:",
+  "refactor:",
+  "docs:",
+  "style:",
+  "chore:",
+  "test:",
+  "ci:",
+  "build:"
+]

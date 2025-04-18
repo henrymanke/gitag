@@ -1,0 +1,40 @@
+name: Auto Tag
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write # required to push tags
+
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # or use a personal token for cross-repo support
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0 # get whole commit history
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install tool
+        run: |
+          pip install -e .
+
+      - name: Auto Tag
+        run: gitag --ci --debug --changelog
+
+      - name: Upload Changelog
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: CHANGELOG.md

@@ -1,0 +1,13 @@
+pipelines:
+  branches:
+    main:
+      - step:
+          name: Auto Tag
+          image: python:3.11
+          clone:
+            depth: full
+          script:
+            - pip install -e .[dev]
+            - git config --global user.name "ci-bot"
+            - git config --global user.email "ci@example.com"
+            - gitag --ci --debug --changelog

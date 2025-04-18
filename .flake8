@@ -1,0 +1,38 @@
+# Setup file for flake8
+[flake8]
+
+# Rules
+max-line-length = 120
+
+ignore =
+
+    # Django - Unused imports
+    F401,
+
+    # sync to black formatter
+
+    # Whitespace before ‘:’ is handled differently by Black than required by PEP 8.
+    E203,
+
+    # Too many leading # for block comments. Black does not modify comments, but it is good to ignore this rule if Black modifies other parts of the code.
+    E266,
+
+    # Necessary for GitHub - you can use it locally: Line too long. Black already controls the line length, so this rule is superfluous if Black is used.
+    # E501,
+
+    # Line break before binary operator. Black breaks lines before binary operators, which is contrary to the PEP 8 guideline followed by this rule.
+    W503,
+
+
+exclude =
+    .git,
+    __pycache__,
+    old,
+    build,
+    dist,
+    # django
+    migrations,
+    # ignore venv
+    env,
+    venv
+    docs/*

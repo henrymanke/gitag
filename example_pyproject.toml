@@ -1,0 +1,37 @@
+[tool.gitag]
+
+# Optional prefix for generated tags (e.g., "v1.2.3")
+prefix = "v"
+
+# Optional suffix for tags (e.g., "-beta" => "1.2.3-beta")
+suffix = "-beta"
+
+# Optional version pattern to match existing tags
+# Use named groups: major, minor, patch, prerelease, buildmetadata
+version_pattern = "^v?(\\d+)\\.(\\d+)\\.(\\d+)(?:-beta)?$"
+
+[tool.gitag.bump_keywords]
+
+# Keywords that trigger a major version bump
+major = [
+    "BREAKING CHANGE",
+    "!:",
+    "[MAJOR]"
+]
+
+# Keywords that trigger a minor version bump
+minor = [
+    "feat:",
+    "feature:",
+    "[MINOR]"
+]
+
+# Keywords that trigger a patch version bump
+patch = [
+    "fix:",
+    "bugfix:",
+    "chore:",
+    "docs:",
+    "refactor:",
+    "[PATCH]"
+]

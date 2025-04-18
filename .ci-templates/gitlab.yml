@@ -1,0 +1,17 @@
+stages:
+  - tag
+
+auto_tag:
+  stage: tag
+  image: python:3.11
+  variables:
+    GIT_STRATEGY: clone
+    GIT_SUBMODULE_STRATEGY: recursive
+    GIT_DEPTH: "0"
+  script:
+    - pip install -e .[dev]
+    - git config --global user.name "ci-bot"
+    - git config --global user.email "ci@example.com"
+    - gitag --ci --debug --changelog
+  only:
+    - main

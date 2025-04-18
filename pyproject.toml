@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gitag"
+version = "0.1.0"
+description = "A CLI tool for automatic git tagging based on commit messages"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Henry Manke", email = "info@hm-co.de" }]
+license = "MIT"
+
+dependencies = []
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Version Control :: Git",
+    "Intended Audience :: Developers",
+]
+
+[project.urls]
+Homepage = "https://github.com/henrymanke/gitag"
+Issues = "https://github.com/henrymanke/gitag/issues"
+
+[project.scripts]
+gitag = "gitag.main:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-mock",
+    "coverage",
+    "build",
+    "twine"
+]
+
+[tool.setuptools]
+include-package-data = true
+packages = ["gitag"]
+
+# ✅ Coverage-Konfiguration
+[tool.coverage.run]
+branch = true
+source = ["gitag"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+fail_under = 100

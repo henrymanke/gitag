@@ -1,0 +1,20 @@
+version: 2.1
+
+jobs:
+  auto-tag:
+    docker:
+      - image: cimg/python:3.11
+    steps:
+      - checkout
+      - run:
+          name: Install deps
+          command: pip install -e .[dev]
+      - run:
+          name: Auto Tag
+          command: gitag --ci --debug --changelog
+
+workflows:
+  version: 2
+  tag:
+    jobs:
+      - auto-tag
