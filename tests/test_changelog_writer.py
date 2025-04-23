@@ -92,7 +92,7 @@ def test_write_changelog_no_changes(tmp_path):
 
 def test_append_to_existing_changelog(tmp_path):
     path = tmp_path / "CHANGELOG.md"
-    # Fake bestehender Changelog mit TOC und altem Tag
+    # Fake existing changelog with TOC and old tag
     path.write_text("""# 📘 Changelog Overview
 | Version | Date | Major | Minor | Patch |
 |:-------:|:----:|:-----:|:-----:|:-----:|
@@ -110,10 +110,10 @@ def test_append_to_existing_changelog(tmp_path):
 
     content = path.read_text()
     assert "## v1.0.0" in content
-    assert "## v0.9.0" in content  # Alter Block muss erhalten bleiben
+    assert "## v0.9.0" in content  # Old block must be preserved
     assert "fix: old bug" in content
     assert "feat: added stuff" in content
-    assert content.count("📘 Changelog Overview") == 1  # TOC wurde ersetzt, nicht verdoppelt
+    assert content.count("📘 Changelog Overview") == 1  # TOC was replaced, not duplicated
 
 
 def test_write_changelog_without_date(tmp_path):
@@ -124,11 +124,11 @@ def test_write_changelog_without_date(tmp_path):
 
     content = path.read_text()
 
-    # ✅ Nur die relevante Zeile (Eintrag-Header) extrahieren
+    # ✅ Extract only the relevant line (entry header)
     lines = content.splitlines()
     entry_line = next(line for line in lines if line.startswith("## v1.2.5"))
 
-    # ✅ Sicherstellen, dass KEIN Datum im Header enthalten ist
+    # ✅ Ensure that NO date is included in the header
     assert entry_line.strip() == "## v1.2.5"
 
 
@@ -165,7 +165,7 @@ Random garbage
     content = path.read_text()
     assert "## v1.0.1" in content
     assert "feat: new feature" in content
-    # Der Block ohne Match darf nicht erscheinen
+    # The block without a match must not appear
     assert "Random garbage" not in content
 
 
@@ -183,12 +183,12 @@ def test_append_block_with_same_tag(tmp_path):
 """)
 
     writer = ChangelogWriter(path=path, mode="append")
-    # gleiche Tag-Version, sollte nicht doppelt auftauchen
+    # same tag version, should not appear twice
     commits = {"patch": ["fix: new fix"]}
     writer.write("v1.2.5", commits)
 
     content = path.read_text()
-    # nur 1x der Header erlaubt
+    # only 1x of the header allowed
     assert content.count("## v1.2.5") == 1
     assert "fix: new fix" in content
     assert "fix: old patch" not in content

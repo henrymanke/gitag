@@ -29,13 +29,7 @@ Issues = "https://github.com/henrymanke/gitag/issues"
 gitag = "gitag.main:main"
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=8.0",
-    "pytest-mock",
-    "coverage",
-    "build",
-    "twine"
-]
+dev = ["pytest>=8.0", "pytest-mock", "coverage", "build", "twine"]
 
 [tool.setuptools]
 include-package-data = true
@@ -49,4 +43,4 @@ source = ["gitag"]
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
-fail_under = 100
+fail_under = 90

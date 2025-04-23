@@ -63,15 +63,14 @@ def test_invalid_version_format():
 
 def test_custom_strategy_from_pyproject(tmp_path):
     pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text("""
+    pyproject.write_text(r"""
 [tool.gitag]
-version_pattern = "^v?(\\\\d+)\\\\.(\\\\d+)\\\\.(\\\\d+)$"
+version_pattern = "^v?(\\d+)\\.(\\d+)\\.(\\d+)$"
 
 [tool.gitag.bump_keywords]
 major = ["BREAKING"]
 minor = ["feature:"]
 """)
-
     vm = VersionManager(config_path=str(pyproject))
     assert vm.determine_bump(["BREAKING fix"]) == BumpLevel.MAJOR
     assert vm.determine_bump(["feature: X"]) == BumpLevel.MINOR
@@ -190,7 +189,7 @@ def test_default_strategy_returns_patch_on_no_match():
 
 def test_pyproject_load_error(monkeypatch, tmp_path, caplog):
     broken_file = tmp_path / "pyproject.toml"
-    broken_file.write_text("{ not: valid: toml")  # absichtlich kaputt
+    broken_file.write_text("{ not: valid: toml")
     monkeypatch.chdir(tmp_path)
 
     with caplog.at_level("ERROR"):

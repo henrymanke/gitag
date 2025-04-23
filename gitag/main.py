@@ -1,7 +1,13 @@
 import argparse
 import os
+import sys
+import logging
 from gitag.auto_tagger import GitAutoTagger
 from gitag.config import MergeStrategy
+from gitag.git_repo import GitRepo
+
+logger = logging.getLogger("gitag")
+logging.basicConfig(level=logging.INFO)
 
 
 def detect_ci_context() -> tuple[str, bool, bool]:
@@ -45,34 +51,49 @@ def main(argv=None):
     parser.add_argument("--ci", action="store_true", help="Enable CI detection mode")
     args = parser.parse_args(argv)
 
+    if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
+        logger.debug("🔧 Debug logging enabled.")
+
     if args.ci:
         ci_system, is_pr, is_main = detect_ci_context()
-        print(f"ℹ️ CI mode detected ({ci_system})")
+        logger.info(f"ℹ️ CI mode detected ({ci_system})")
         if is_pr:
             args.dry_run = True
-            print("🔁 PR detected – dry run enabled.")
+            logger.warning("🔁 PR detected – dry run enabled.")
         elif is_main:
             args.push = True
-            print("🚀 Main branch – push enabled.")
+            logger.info("🚀 Main branch – push enabled.")
         else:
             args.dry_run = True
-            print("ℹ️ Non-main branch – dry run fallback.")
+            logger.info("ℹ️ Non-main branch – dry run fallback.")
 
-    tagger = GitAutoTagger(
-        debug=args.debug,
-        config_path=args.config,
-        push=args.push,
-        changelog=args.changelog,
-        pre=args.pre,
-        build=args.build,
-        include_merges=args.include_merges,
-        merge_strategy=MergeStrategy(args.merge_strategy or "auto"),
-    )
-    tagger.run(dry_run=args.dry_run, since_tag=args.since_tag)
+    # Optional: ensure initial tag exists
+    try:
+        GitRepo(debug=args.debug).ensure_initial_tag(push=args.push)
+    except Exception as e:
+        logger.warning(f"⚠️ Could not ensure initial tag: {e}")
+
+    try:
+        tagger = GitAutoTagger(
+            debug=args.debug,
+            config_path=args.config,
+            push=args.push,
+            changelog=args.changelog,
+            pre=args.pre,
+            build=args.build,
+            include_merges=args.include_merges,
+            merge_strategy=MergeStrategy(args.merge_strategy or "auto"),
+        )
+        tagger.run(dry_run=args.dry_run, since_tag=args.since_tag)
+    except Exception as e:
+        logger.error(f"❌ gitag failed: {e}")
+        if args.debug:
+            raise
+        return 1
 
     return 0
 
 
 if __name__ == "__main__":  # pragma: no cover
-    import sys
     sys.exit(main())
