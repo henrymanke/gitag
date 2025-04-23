@@ -219,12 +219,12 @@ def test_tag_exists_true_false(monkeypatch):
         assert not repo.tag_exists("v9.9.9")
 
 
-def test_create_tag_fails_if_exists(capsys):
+def test_create_tag_fails_if_exists(caplog):
     with mock.patch("gitag.git_repo.GitRepo.tag_exists", return_value=True):
         repo = GitRepo()
         success = repo.create_tag("v1.2.3", push=False)
         assert success is False
-        assert "already exists" in capsys.readouterr().out
+        assert "already exists" in caplog.text
 
 
 def test_create_tag_and_push(monkeypatch):
@@ -272,24 +272,28 @@ def test_get_commit_messages_with_merges():
         assert commits == ["feat: with merge"]
 
 
-def test_merge_strategy_always_triggers_debug():
-    with mock.patch("subprocess.run") as mocked, \
-            mock.patch("builtins.print") as mock_print:
-        mocked.return_value = mock.Mock(stdout="feat: always", returncode=0)
+def test_merge_strategy_always_triggers_debug(caplog):
+    caplog.set_level("DEBUG", logger="gitag.git_repo")
+    with mock.patch("subprocess.run") as mocked:
+        mocked.return_value = mock.Mock(stdout="commit message", returncode=0)
         repo = GitRepo(debug=True, merge_strategy=MergeStrategy.ALWAYS)
         repo.get_commit_messages("v1.0.0")
 
-        # ✅ Sicherstellen, dass der Debug-Ausdruck für ALWAYS ausgeführt wurde
-        assert any("[ALWAYS] Using full commit range:" in str(call.args[0]) for call in mock_print.call_args_list)
+    # Normalize for debug output
+    assert any("Using full commit range" in msg for msg in caplog.messages)
 
 
-def test_merge_strategy_invalid():
+def test_merge_strategy_invalid(caplog):
+    caplog.set_level("DEBUG", logger="gitag.git_repo")
+
     class FakeStrategy:
         value = "invalid"
+
     repo = GitRepo(debug=True)
     repo.merge_strategy = FakeStrategy()
-    with mock.patch("subprocess.run") as mocked, \
-            mock.patch("builtins.print") as mock_print:
+
+    with mock.patch("subprocess.run") as mocked:
         mocked.return_value = mock.Mock(stdout="feat: unknown", returncode=0)
         repo.get_commit_messages("v1.0.0")
-        assert any("not recognized" in str(c.args[0]) for c in mock_print.call_args_list)
+
+    assert any("not recognized" in msg for msg in caplog.messages)

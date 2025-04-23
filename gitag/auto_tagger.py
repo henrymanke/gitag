@@ -1,7 +1,10 @@
+import logging
 from gitag.git_repo import GitRepo
 from gitag.version_manager import VersionManager
 from gitag.changelog_writer import ChangelogWriter
 from gitag.config import MergeStrategy
+
+logger = logging.getLogger(__name__)
 
 
 class GitAutoTagger:
@@ -31,12 +34,12 @@ class GitAutoTagger:
     def run(self, dry_run=False, since_tag=None):
         current_tag = since_tag or self.repo.get_latest_tag()
         if not current_tag:
-            print("ℹ️ No previous tag found. Using all commits.")
+            logger.info("ℹ️ No previous tag found. Using all commits.")
             current_tag = self.versioning.get_default_version()
 
         commits = self.repo.get_commit_messages(since_tag=current_tag)
         if not commits:
-            print("❌ No new commits found.")
+            logger.warning("❌ No new commits found.")
             return
 
         bump_level = self.versioning.determine_bump(commits)
@@ -50,17 +53,17 @@ class GitAutoTagger:
 
         info_suffix = " " + " ".join(extra_info) if extra_info else ""
 
-        print(f"🆕 New version: {new_tag} ({bump_level}-release{info_suffix})")
+        logger.info(f"🆕 New version: {new_tag} ({bump_level}-release{info_suffix})")
 
         if self.write_changelog:
             categorized = self.versioning.categorize_commits(commits)
             self.changelog_writer.write(tag=new_tag, categorized_commits=categorized)
 
         if dry_run:
-            print("🚫 Dry run enabled – skipping tag creation.")
+            logger.info("🚫 Dry run enabled - skipping tag creation.")
             return
 
         if self.repo.create_tag(new_tag, self.push):
-            print(f"✅ Tag {new_tag} created" + (" and pushed." if self.push else "."))
+            logger.info(f"✅ Tag {new_tag} created" + (" and pushed." if self.push else "."))
         else:
-            print(f"ℹ️ Tag {new_tag} already exists.")
+            logger.info(f"ℹ️ Tag {new_tag} already exists.")

@@ -97,13 +97,13 @@ def test_main_entrypoint(monkeypatch):
     "GITHUB_EVENT_NAME": "push",
     "GITHUB_REF": "refs/heads/dev"
 })
-def test_main_ci_non_main_branch_enables_dry_run(mock_tagger, capsys):
+def test_main_ci_non_main_branch_enables_dry_run(mock_tagger, caplog):
+    caplog.set_level("INFO", logger="gitag")
+
     result = main_module.main(["--ci"])
     assert result == 0
     mock_tagger.return_value.run.assert_called_once_with(dry_run=True, since_tag=None)
-
-    captured = capsys.readouterr()
-    assert "Non-main branch – dry run fallback" in captured.out
+    assert any("dry run fallback" in msg.lower() for msg in caplog.messages)
 
 
 def test_main_as_entrypoint(monkeypatch):

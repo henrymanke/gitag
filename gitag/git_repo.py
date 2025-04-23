@@ -1,8 +1,11 @@
 import subprocess
 import os
 import sys
+import logging
 from typing import Optional
 from gitag.config import MergeStrategy
+
+logger = logging.getLogger(__name__)
 
 
 class GitRepo:
@@ -14,10 +17,6 @@ class GitRepo:
         self.include_merges = include_merges
         self.merge_strategy = merge_strategy
 
-    def debug_print(self, message: str):
-        if self.debug:
-            print(f"🔧 [DEBUG] {message}")
-
     def configure_remote(self):
         token = os.getenv("GH_TOKEN") or os.getenv("GITHUB_TOKEN")
         repo = os.getenv("GITHUB_REPOSITORY")
@@ -28,9 +27,9 @@ class GitRepo:
                 "git", "remote", "set-url", "origin",
                 f"https://x-access-token:{token}@github.com/{repo}"
             ], check=True)
-            self.debug_print("Git remote configured using CI token.")
+            logger.debug("Git remote configured using CI token.")
         else:
-            self.debug_print("No GH_TOKEN or GITHUB_TOKEN available. Skipping git remote config.")
+            logger.debug("No GH_TOKEN or GITHUB_TOKEN available. Skipping git remote config.")
 
     def get_latest_tag(self) -> Optional[str]:
         try:
@@ -38,19 +37,19 @@ class GitRepo:
             result = subprocess.run(['git', 'describe', '--tags', '--abbrev=0'],
                                     capture_output=True, text=True, check=True)
             tag = result.stdout.strip()
-            self.debug_print(f"Latest tag: {tag}")
+            logger.debug(f"Latest tag: {tag}")
             return tag
         except subprocess.CalledProcessError:
-            self.debug_print("No tag via describe. Trying fallback.")
+            logger.debug("No tag via describe. Trying fallback.")
             try:
                 result = subprocess.run(['git', 'tag', '--sort=-creatordate'],
                                         capture_output=True, text=True, check=True)
                 tags = result.stdout.strip().split('\n')
                 tag = tags[0] if tags else None
-                self.debug_print(f"Latest tag via fallback: {tag}")
+                logger.debug(f"Latest tag via fallback: {tag}")
                 return tag
             except subprocess.CalledProcessError:
-                self.debug_print("No tags found.")
+                logger.debug("No tags found.")
                 return None
 
     def get_commit_messages(self, since_tag: Optional[str]) -> list[str]:
@@ -59,7 +58,6 @@ class GitRepo:
             if not self.include_merges:
                 cmd.append('--no-merges')
 
-            # Default: use latest tag as baseline
             range_arg = f"{since_tag}..HEAD" if since_tag else "HEAD"
 
             if self.merge_strategy in (MergeStrategy.MERGE_ONLY, MergeStrategy.AUTO):
@@ -73,27 +71,29 @@ class GitRepo:
                     parent1, parent2 = parts[1], parts[2]
                     range_arg = f"{parent1}..{parent2}"
                     label = "[AUTO]" if self.merge_strategy == MergeStrategy.AUTO else "[MERGE_ONLY]"
-                    self.debug_print(f"{label} Using feature-only commits: {range_arg}")
+                    logger.debug(f"{label} Using feature-only commits: {range_arg}")
                 else:
-                    self.debug_print(
-                        f"[{self.merge_strategy.value.upper()}] HEAD is not a merge commit, \
-                        falling back to: {range_arg}")
+                    logger.debug(
+                        f"[{self.merge_strategy.value.upper()}] HEAD is not a merge commit, "
+                        f"falling back to: {range_arg}"
+                    )
 
             elif self.merge_strategy == MergeStrategy.ALWAYS:
-                self.debug_print(f"[ALWAYS] Using full commit range: {range_arg}")
+                logger.debug(f"[ALWAYS] Using full commit range: {range_arg}")
             else:
-                self.debug_print(f"[UNKNOWN] Merge strategy not recognized: {self.merge_strategy}")
+                logger.debug(f"[UNKNOWN] Merge strategy not recognized: {self.merge_strategy}")
 
             cmd.append(range_arg)
 
             result = subprocess.run(cmd, capture_output=True, text=True, check=True)
             commits = result.stdout.strip().split('\n') if result.stdout.strip() else []
-            self.debug_print(f"Found commits: {commits}")
+            logger.debug(f"Found commits: {commits}")
             return commits
 
         except subprocess.CalledProcessError as e:
-            print("❌ Error: Failed to get commit messages.")
-            self.debug_print(str(e))
+            logger.error("❌ Error: Failed to get commit messages.")
+            if self.debug:
+                logger.debug(str(e))
             sys.exit(1)
 
     def tag_exists(self, tag: str) -> bool:
@@ -105,13 +105,37 @@ class GitRepo:
 
     def create_tag(self, tag: str, push: bool) -> bool:
         if self.tag_exists(tag):
-            print(f"⚠️  Tag '{tag}' already exists.")
+            logger.warning(f"⚠️ Tag '{tag}' already exists.")
             return False
         try:
             subprocess.run(['git', 'tag', tag], check=True)
             if push:
                 subprocess.run(['git', 'push', 'origin', tag], check=True)
+                logger.debug(f"🚀 Pushed tag '{tag}' to origin.")
             return True
         except subprocess.CalledProcessError as e:
-            print(f"❌ Failed to create or push tag '{tag}': {e}")
+            logger.error(f"❌ Failed to create or push tag '{tag}': {e}")
+            sys.exit(1)
+
+    def ensure_initial_tag(self, tag: str = "0.0.0", push: bool = False):
+        logger.debug("🔍 Checking for existing tags...")
+        try:
+            result = subprocess.run(['git', 'tag'], capture_output=True, text=True, check=True)
+            tags = result.stdout.strip().splitlines()
+            if tags:
+                logger.debug(f"✅ Tags already exist: {tags}")
+                return
+        except subprocess.CalledProcessError as e:
+            logger.debug(f"⚠️ Could not list tags: {e}")
+            return
+
+        logger.debug("➕ No tags found. Creating initial tag...")
+        try:
+            subprocess.run(['git', 'tag', tag], check=True)
+            logger.info(f"🏷️ Created initial tag: {tag}")
+            if push:
+                subprocess.run(['git', 'push', 'origin', tag], check=True)
+                logger.info(f"🚀 Pushed initial tag '{tag}' to origin")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"❌ Failed to create or push initial tag '{tag}': {e}")
             sys.exit(1)

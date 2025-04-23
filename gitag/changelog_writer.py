@@ -1,8 +1,11 @@
 import os
 import re
+import logging
 from datetime import datetime
 from typing import Optional
 from gitag.config import DEFAULT_LEVELS, BumpLevel
+
+logger = logging.getLogger(__name__)
 
 
 class ChangelogWriter:
@@ -89,4 +92,4 @@ class ChangelogWriter:
         with open(self.path, "w") as f:
             f.write(final)
 
-        print(f"📝 Changelog updated at {self.path}")
+        logger.info(f"📝 Changelog updated at {self.path}")
