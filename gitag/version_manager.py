@@ -42,7 +42,7 @@ class VersionManager:
                 logger.error(f"Error loading {config_path}: {e}")
                 return
 
-        tool_config = config.get("tool", {}).get("git-auto-tag", {})
+        tool_config = config.get("tool", {}).get("gitag", {})
         self.pattern = tool_config.get("version_pattern", self.pattern)
         self.prefix = tool_config.get("prefix", "")
         self.suffix = tool_config.get("suffix", "")
