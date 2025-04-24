@@ -297,3 +297,30 @@ def test_merge_strategy_invalid(caplog):
         repo.get_commit_messages("v1.0.0")
 
     assert any("not recognized" in msg for msg in caplog.messages)
+
+
+def test_get_commit_messages_exit_with_debug(caplog):
+    caplog.set_level("DEBUG", logger="gitag.git_repo")
+    with mock.patch("subprocess.run", side_effect=subprocess.CalledProcessError(1, ["git", "log"])), \
+            mock.patch("sys.exit") as exit_mock:
+
+        repo = GitRepo(debug=True)
+        repo.get_commit_messages("v0.1.0")
+
+        assert any("❌ Error" in msg for msg in caplog.messages)
+        assert any("Command '['git', 'log']'" in msg for msg in caplog.messages)
+        exit_mock.assert_called_once_with(1)
+
+
+def test_get_commit_messages_exit_without_debug(caplog):
+    caplog.set_level("DEBUG", logger="gitag.git_repo")
+    with mock.patch("subprocess.run", side_effect=subprocess.CalledProcessError(1, ["git", "log"])), \
+            mock.patch("sys.exit") as exit_mock:
+
+        repo = GitRepo(debug=False)
+        repo.get_commit_messages("v0.1.0")
+
+        assert any("❌ Error" in msg for msg in caplog.messages)
+        # Hier kein `logger.debug(...)` erwartet
+        assert all("Command '['git', 'log']'" not in msg for msg in caplog.messages)
+        exit_mock.assert_called_once_with(1)
