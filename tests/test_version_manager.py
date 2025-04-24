@@ -85,18 +85,18 @@ def test_prefix_and_suffix():
     assert result == "ver-1.2.4-stable"
 
 
-@pytest.mark.parametrize("prefix,suffix,old_version,expected", [
+@pytest.mark.parametrize("prefix,suffix,current_version,expected", [
     ("v", "", "v1.2.3", "v1.2.4"),
     ("", "-stable", "1.2.3-stable", "1.2.4-stable"),
     ("ver-", "-prod", "ver-1.2.3-prod", "ver-1.2.4-prod"),
     ("release-", "", "release-1.2.3", "release-1.2.4"),
     ("", "", "1.2.3", "1.2.4"),
 ])
-def test_patch_with_prefix_suffix(prefix, suffix, old_version, expected):
+def test_patch_with_prefix_suffix(prefix, suffix, current_version, expected):
     vm = VersionManager()
     vm.prefix = prefix
     vm.suffix = suffix
-    assert vm.bump_version(old_version, BumpLevel.PATCH) == expected
+    assert vm.bump_version(current_version, BumpLevel.PATCH) == expected
 
 
 def test_config_path_defaults_to_pyproject(monkeypatch, tmp_path):

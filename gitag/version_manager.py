@@ -104,7 +104,7 @@ class VersionManager:
         return version
 
     def bump_version(
-        self, old_version: str, level: BumpLevel,
+        self, current_version: str, level: BumpLevel,
         pre: Optional[str] = None, build: Optional[str] = None
     ) -> str:
 
@@ -114,11 +114,11 @@ class VersionManager:
             except KeyError:
                 raise ValueError(f"Invalid bump level: {level}")
 
-        raw_version = self.strip_prefix_suffix(old_version)
+        raw_version = self.strip_prefix_suffix(current_version)
         match = re.fullmatch(self.pattern, raw_version)
         if not match:
-            logger.error(f"Invalid version format: {old_version}")
-            raise ValueError(f"Invalid version format: {old_version}")
+            logger.error(f"Invalid version format: {current_version}")
+            raise ValueError(f"Invalid version format: {current_version}")
 
         major = int(match.group("major"))
         minor = int(match.group("minor"))
