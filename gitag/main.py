@@ -8,6 +8,9 @@ from gitag.git_repo import GitRepo
 from gitag.utils.logging_setup import setup_logging
 
 
+logger = logging.getLogger("gitag")
+
+
 def detect_ci_context() -> tuple[str, bool, bool]:
     env = os.environ
     if "GITHUB_ACTIONS" in env:
@@ -53,16 +56,16 @@ def main(argv=None):
 
     if args.ci:
         ci_system, is_pr, is_main = detect_ci_context()
-        logging.info(f"ℹ️ CI mode detected ({ci_system})")
+        logger.info(f"ℹ️ CI mode detected ({ci_system})")
         if is_pr:
             args.dry_run = True
-            logging.warning("🔁 PR detected – dry run enabled.")
+            logger.warning("🔁 PR detected – dry run enabled.")
         elif is_main:
             args.push = True
-            logging.info("🚀 Main branch – push enabled.")
+            logger.info("🚀 Main branch – push enabled.")
         else:
             args.dry_run = True
-            logging.info("ℹ️ Non-main branch – dry run fallback.")
+            logger.info("ℹ️ Non-main branch – dry run fallback.")
 
     try:
         tagger = GitAutoTagger(
@@ -77,7 +80,7 @@ def main(argv=None):
         )
         tagger.run(dry_run=args.dry_run, since_tag=args.since_tag)
     except Exception as e:
-        logging.error(f"❌ gitag failed: {e}")
+        logger.error(f"❌ gitag failed: {e}")
         if args.debug:
             raise
         return 1
