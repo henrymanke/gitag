@@ -112,3 +112,25 @@ def test_main_as_entrypoint(monkeypatch):
         mock_tagger.return_value.run.return_value = None
         result = main_module.main()
         assert result == 0
+
+
+@mock.patch("gitag.main.GitAutoTagger")
+def test_main_debug_logging_enabled(mock_tagger, caplog):
+    caplog.set_level("DEBUG", logger="gitag")
+    result = main_module.main(["--dry-run", "--debug"])
+    assert result == 0
+    assert "🔧 Debug logging enabled." in caplog.text
+
+
+@mock.patch("gitag.main.GitAutoTagger.run", side_effect=RuntimeError("boom"))
+def test_main_debug_raises_exception(mock_run):
+    with pytest.raises(RuntimeError, match="boom"):
+        main_module.main(["--dry-run", "--debug"])
+
+
+@mock.patch("gitag.main.GitAutoTagger.run", side_effect=RuntimeError("boom"))
+def test_main_exception_without_debug(mock_run, caplog):
+    caplog.set_level("ERROR", logger="gitag")
+    result = main_module.main(["--dry-run"])  # kein --debug
+    assert result == 1
+    assert "❌ gitag failed: boom" in caplog.text

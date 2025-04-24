@@ -116,26 +116,3 @@ class GitRepo:
         except subprocess.CalledProcessError as e:
             logger.error(f"❌ Failed to create or push tag '{tag}': {e}")
             sys.exit(1)
-
-    def ensure_initial_tag(self, tag: str = "0.0.0", push: bool = False):
-        logger.debug("🔍 Checking for existing tags...")
-        try:
-            result = subprocess.run(['git', 'tag'], capture_output=True, text=True, check=True)
-            tags = result.stdout.strip().splitlines()
-            if tags:
-                logger.debug(f"✅ Tags already exist: {tags}")
-                return
-        except subprocess.CalledProcessError as e:
-            logger.debug(f"⚠️ Could not list tags: {e}")
-            return
-
-        logger.debug("➕ No tags found. Creating initial tag...")
-        try:
-            subprocess.run(['git', 'tag', tag], check=True)
-            logger.info(f"🏷️ Created initial tag: {tag}")
-            if push:
-                subprocess.run(['git', 'push', 'origin', tag], check=True)
-                logger.info(f"🚀 Pushed initial tag '{tag}' to origin")
-        except subprocess.CalledProcessError as e:
-            logger.error(f"❌ Failed to create or push initial tag '{tag}': {e}")
-            sys.exit(1)
