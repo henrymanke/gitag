@@ -273,7 +273,7 @@ def test_get_commit_messages_with_merges():
 
 
 def test_merge_strategy_always_triggers_debug(caplog):
-    caplog.set_level("DEBUG", logger="gitag.git_repo")
+    caplog.set_level("DEBUG")
     with mock.patch("subprocess.run") as mocked:
         mocked.return_value = mock.Mock(stdout="commit message", returncode=0)
         repo = GitRepo(debug=True, merge_strategy=MergeStrategy.ALWAYS)
@@ -284,7 +284,7 @@ def test_merge_strategy_always_triggers_debug(caplog):
 
 
 def test_merge_strategy_invalid(caplog):
-    caplog.set_level("DEBUG", logger="gitag.git_repo")
+    caplog.set_level("DEBUG")
 
     class FakeStrategy:
         value = "invalid"
@@ -300,7 +300,7 @@ def test_merge_strategy_invalid(caplog):
 
 
 def test_get_commit_messages_exit_with_debug(caplog):
-    caplog.set_level("DEBUG", logger="gitag.git_repo")
+    caplog.set_level("DEBUG")
     with mock.patch("subprocess.run", side_effect=subprocess.CalledProcessError(1, ["git", "log"])), \
             mock.patch("sys.exit") as exit_mock:
 
@@ -313,7 +313,7 @@ def test_get_commit_messages_exit_with_debug(caplog):
 
 
 def test_get_commit_messages_exit_without_debug(caplog):
-    caplog.set_level("DEBUG", logger="gitag.git_repo")
+    caplog.set_level("DEBUG")
     with mock.patch("subprocess.run", side_effect=subprocess.CalledProcessError(1, ["git", "log"])), \
             mock.patch("sys.exit") as exit_mock:
 

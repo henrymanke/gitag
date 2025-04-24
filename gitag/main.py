@@ -5,9 +5,7 @@ import logging
 from gitag.auto_tagger import GitAutoTagger
 from gitag.config import MergeStrategy
 from gitag.git_repo import GitRepo
-
-logger = logging.getLogger("gitag")
-logging.basicConfig(level=logging.INFO)
+from gitag.utils.logging_setup import setup_logging
 
 
 def detect_ci_context() -> tuple[str, bool, bool]:
@@ -51,22 +49,20 @@ def main(argv=None):
     parser.add_argument("--ci", action="store_true", help="Enable CI detection mode")
     args = parser.parse_args(argv)
 
-    if args.debug:
-        logging.getLogger().setLevel(logging.DEBUG)
-        logger.debug("🔧 Debug logging enabled.")
+    setup_logging(debug=args.debug)
 
     if args.ci:
         ci_system, is_pr, is_main = detect_ci_context()
-        logger.info(f"ℹ️ CI mode detected ({ci_system})")
+        logging.info(f"ℹ️ CI mode detected ({ci_system})")
         if is_pr:
             args.dry_run = True
-            logger.warning("🔁 PR detected – dry run enabled.")
+            logging.warning("🔁 PR detected – dry run enabled.")
         elif is_main:
             args.push = True
-            logger.info("🚀 Main branch – push enabled.")
+            logging.info("🚀 Main branch – push enabled.")
         else:
             args.dry_run = True
-            logger.info("ℹ️ Non-main branch – dry run fallback.")
+            logging.info("ℹ️ Non-main branch – dry run fallback.")
 
     try:
         tagger = GitAutoTagger(
@@ -81,7 +77,7 @@ def main(argv=None):
         )
         tagger.run(dry_run=args.dry_run, since_tag=args.since_tag)
     except Exception as e:
-        logger.error(f"❌ gitag failed: {e}")
+        logging.error(f"❌ gitag failed: {e}")
         if args.debug:
             raise
         return 1
