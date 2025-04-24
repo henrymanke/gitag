@@ -68,12 +68,6 @@ def main(argv=None):
             args.dry_run = True
             logger.info("ℹ️ Non-main branch – dry run fallback.")
 
-    # Optional: ensure initial tag exists
-    try:
-        GitRepo(debug=args.debug).ensure_initial_tag(push=args.push)
-    except Exception as e:
-        logger.warning(f"⚠️ Could not ensure initial tag: {e}")
-
     try:
         tagger = GitAutoTagger(
             debug=args.debug,
