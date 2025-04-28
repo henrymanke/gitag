@@ -1,7 +1,7 @@
 # 🚀 gitag
 
 <p align="center">
-  <img src="./assets/gitag.svg" alt="gitag logo" width="180"/>
+  <img src="https://raw.githubusercontent.com/henrymanke/gitag/main/assets/gitag.svg" alt="gitag logo" width="180"/>
 </p>
 
 **A modern CLI tool for automatic Git tagging based on commit messages.**  
@@ -179,11 +179,11 @@ This tool automates that process — reliably, consistently, and CI-friendly.
 
 ## 📄 License
 
-MIT © [Henry Manke](https://github.com/henrymanke)
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
 
 ## 🤝 Contributing
 
-Feedback, issues and PRs are welcome!  
-Help improve the tool, or suggest new features ✨
+Feedback, issues, and pull requests are welcome!  
+Please read our [Contributing Guidelines](CONTRIBUTING.md) to learn how to get started. ✨
