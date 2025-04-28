@@ -1,40 +1,55 @@
-name: Auto Tag
+name: Release to PyPI
 
+# Trigger workflow on:
+# - completion of the Auto Tag workflow
+# - push of a tag matching v* (e.g. v1.0.0)
+# - creation of a GitHub Release
 on:
+  workflow_run:
+    workflows: ["Auto Tag"]
+    types:
+      - completed
   push:
-    branches: [main]
+    tags:
+      - "v*"
+  release:
+    types: [created]
 
 jobs:
-  tag:
+  build-and-publish:
+    name: Build and Publish
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: write # required to push tags
-
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # or use a personal token for cross-repo support
+    # Only run after a successful Auto Tag or on tag push/release
+    if: |
+      github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' ||
+      github.event_name == 'push' ||
+      github.event_name == 'release'
 
     steps:
-      - name: Checkout
+      - name: Check out repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0 # get whole commit history
+          fetch-depth: 0 # ensures tags are fetched
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: "3.x"
+          cache: "pip"
 
-      - name: Install tool
+      - name: Install build tools
         run: |
-          pip install -e .
+          python -m pip install --upgrade pip
+          pip install build twine
 
-      - name: Auto Tag
-        run: gitag --ci --debug --changelog
+      - name: Build distributions
+        run: |
+          python -m build --sdist --wheel
 
-      - name: Upload Changelog
-        uses: actions/upload-artifact@v4
-        with:
-          name: changelog
-          path: CHANGELOG.md
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          twine upload dist/*
