@@ -1,18 +1,36 @@
 name: Release to PyPI
 
+# Trigger workflow on:
+# - completion of the Auto Tag workflow
+# - push of a tag matching v* (e.g. v1.0.0)
+# - creation of a GitHub Release
 on:
+  workflow_run:
+    workflows: ["Auto Tag"]
+    types:
+      - completed
   push:
     tags:
       - "v*"
+  release:
+    types: [created]
 
 jobs:
   build-and-publish:
     name: Build and Publish
     runs-on: ubuntu-latest
 
+    # Only run after a successful Auto Tag or on tag push/release
+    if: |
+      github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' ||
+      github.event_name == 'push' ||
+      github.event_name == 'release'
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # ensures tags are fetched
 
       - name: Set up Python
         uses: actions/setup-python@v4
