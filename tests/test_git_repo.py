@@ -321,6 +321,5 @@ def test_get_commit_messages_exit_without_debug(caplog):
         repo.get_commit_messages("v0.1.0")
 
         assert any("❌ Error" in msg for msg in caplog.messages)
-        # Hier kein `logger.debug(...)` erwartet
         assert all("Command '['git', 'log']'" not in msg for msg in caplog.messages)
         exit_mock.assert_called_once_with(1)
