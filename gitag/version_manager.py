@@ -1,88 +1,103 @@
-from gitag.config import DEFAULT_BUMP_KEYWORDS, DEFAULT_LEVELS, DEFAULT_VERSION_PATTERN, BumpLevel, MergeStrategy
-import re
 import logging
+import re
 import tomllib
 from pathlib import Path
 from typing import Callable, Optional
+
+from gitag.config import DEFAULT_LEVELS, DEFAULT_VERSION_PATTERN, BumpLevel, MergeStrategy
 from gitag.config_validator import validate_config
 
 logger = logging.getLogger(__name__)
 
 
-def default_bump_strategy(msg: str) -> BumpLevel:
-    msg_lc = msg.lower()
-    for level, keywords in DEFAULT_BUMP_KEYWORDS.items():
-        for kw in keywords:
-            if kw.lower() in msg_lc:
-                return level
-    return BumpLevel.PATCH
-
-
 class VersionManager:
     def __init__(self, config_path: Optional[str] = None):
-        self._config = {
-            "pattern": DEFAULT_VERSION_PATTERN,
-            "strategy": default_bump_strategy,
-        }
-        config_path = config_path or "pyproject.toml"
-        self.load_config_from_pyproject(config_path)
+        self._config = {}
         self.prefix = ""
         self.suffix = ""
+        self.patterns = {}
+        self.merge_strategy = MergeStrategy.AUTO
+
+        config_path = config_path or "pyproject.toml"
+        self.load_config_from_pyproject(config_path)
 
     def load_config_from_pyproject(self, config_path: str):
+        config: dict = {}
+
+        # Load default configuration
+        defaults_path = Path(__file__).parent.parent / "default_pyproject.toml"
+        if defaults_path.exists():
+            with open(defaults_path, "rb") as file:
+                default_config = tomllib.load(file)
+                config.update(default_config.get("tool", {}).get("gitag", {}))
+        else:
+            logger.warning(f"⚠️ Default config {defaults_path} not found.")
+
+        # Load user configuration
         pyproject_path = Path(config_path)
-        if not pyproject_path.exists():
-            logger.warning("pyproject.toml not found: using defaults")
-            return
+        if pyproject_path.exists():
+            with open(pyproject_path, "rb") as f:
+                try:
+                    user_config = tomllib.load(f)
+                    user_tool_config = user_config.get("tool", {}).get("gitag", {})
+                    config.update(user_tool_config)
+                except Exception as e:
+                    logger.error(f"❌ Error loading {config_path}: {e}")
+        else:
+            logger.warning(f"⚠️ User config {config_path} not found, using defaults.")
 
-        with open(pyproject_path, "rb") as f:
-            try:
-                config = tomllib.load(f)
-            except Exception as e:
-                logger.error(f"Error loading {config_path}: {e}")
-                return
+        # Apply basic settings
+        self.pattern = config.get("version_pattern", DEFAULT_VERSION_PATTERN)
+        self.prefix = config.get("prefix", "")
+        self.suffix = config.get("suffix", "")
 
-        tool_config = config.get("tool", {}).get("gitag", {})
-        self.pattern = tool_config.get("version_pattern", self.pattern)
-        self.prefix = tool_config.get("prefix", "")
-        self.suffix = tool_config.get("suffix", "")
+        # Load regex patterns for bump strategy (or fallback on DEFAULT_BUMP_KEYWORDS)
+        raw_patterns = config.get("patterns")
+        if isinstance(raw_patterns, dict):
+            self.patterns = raw_patterns
+        else:
+            if raw_patterns is not None:
+                logger.error(
+                    f"❌ Invalid 'patterns' config: expected table, got {type(raw_patterns).__name__}"
+                )
+            # Fallback auf DEFAULT_BUMP_KEYWORDS aus gitag.config
+            from gitag.config import DEFAULT_BUMP_KEYWORDS
 
-        # ✅ Always validate config if file exists
-        validation_errors = validate_config(tool_config)
+            self.patterns = {
+                level.name.lower(): patterns
+                for level, patterns in DEFAULT_BUMP_KEYWORDS.items()
+            }
+            logger.info("⚠️ Using default bump-patterns from DEFAULT_BUMP_KEYWORDS")
+
+        # Merge strategy
+        self.merge_strategy = MergeStrategy(config.get("merge_strategy", "auto").lower())
+
+        # Set bump strategy
+        self.strategy = self.regex_bump_strategy
+
+        # Validate configuration
+        validation_errors = validate_config(config)
         if validation_errors:
             logger.warning("⚠️ Configuration issues detected:")
             for error in validation_errors:
                 logger.warning(f" - {error}")
 
-        self.merge_strategy = MergeStrategy(
-            tool_config.get("merge_strategy", "auto").lower()
-        )
-
-        keywords = tool_config.get("bump_keywords", {})
-        if isinstance(keywords, dict) and any(keywords.values()):
-            # Warn if any invalid keys
-            invalid_keys = set(keywords.keys()) - {lvl.name.lower() for lvl in DEFAULT_LEVELS}
-            if invalid_keys:
-                logger.warning(f"Ignoring invalid bump levels in config: {invalid_keys}")
-
-            # Map config strings to Enum
-            mapped_keywords = {
-                BumpLevel[level.upper()]: values
-                for level, values in keywords.items()
-                if level.upper() in BumpLevel.__members__
-            }
-
-            def strategy(msg: str) -> BumpLevel:
-                msg_lc = msg.lower()
-                for level, keys in mapped_keywords.items():
-                    for kw in keys:
-                        if kw.lower() in msg_lc:
-                            return level
-                return BumpLevel.PATCH
-
-            self.strategy = strategy
-        else:
-            logger.info("No valid bump_keywords found; using default strategy")
+    def regex_bump_strategy(self, msg: str) -> BumpLevel:
+        msg = msg.strip()
+        # Check in the order MAJOR (0), MINOR (1), PATCH (2)
+        for level in sorted(BumpLevel, key=lambda lvl: lvl.value):
+            for pattern in self.patterns.get(level.name.lower(), []):
+                try:
+                    # Case-sensitive regex match (inline (?i) still works)
+                    if re.search(pattern, msg):
+                        return level
+                except re.error as e:
+                    # Invalid regex → as simple substring check
+                    logger.error(f"❌ Invalid regex '{pattern}': {e}")
+                    if pattern and pattern in msg:
+                        return level
+        # No pattern match → Patch
+        return BumpLevel.PATCH
 
     def determine_bump(self, commits: list[str]) -> BumpLevel:
         if not isinstance(commits, list) or not all(isinstance(c, str) for c in commits):
@@ -93,7 +108,6 @@ class VersionManager:
             result = self.strategy(msg)
             if result.value < best_level.value:
                 best_level = result
-
         return best_level
 
     def strip_prefix_suffix(self, version: str) -> str:
@@ -107,7 +121,6 @@ class VersionManager:
         self, current_version: str, level: BumpLevel,
         pre: Optional[str] = None, build: Optional[str] = None
     ) -> str:
-
         if isinstance(level, str):
             try:
                 level = BumpLevel[level.upper()]
@@ -142,7 +155,7 @@ class VersionManager:
         return f"{self.prefix}{version}{self.suffix}"
 
     def categorize_commits(self, commits: list[str]) -> dict[str, list[str]]:
-        categorized = {str(lvl): [] for lvl in DEFAULT_LEVELS}
+        categorized = {str(level): [] for level in DEFAULT_LEVELS}
         for msg in commits:
             level = self.strategy(msg)
             categorized[str(level)].append(msg)
@@ -152,17 +165,17 @@ class VersionManager:
         return f"{self.prefix}0.0.0{self.suffix}"
 
     @property
-    def strategy(self) -> Callable[[str], BumpLevel]:
-        return self._config["strategy"]
-
-    @strategy.setter
-    def strategy(self, value: Callable[[str], BumpLevel]):
-        self._config["strategy"] = value
-
-    @property
     def pattern(self) -> str:
-        return self._config["pattern"]
+        return self._config.get("pattern", DEFAULT_VERSION_PATTERN)
 
     @pattern.setter
     def pattern(self, value: str):
         self._config["pattern"] = value
+
+    @property
+    def strategy(self) -> Callable[[str], BumpLevel]:
+        return self._config.get("strategy")
+
+    @strategy.setter
+    def strategy(self, value: Callable[[str], BumpLevel]):
+        self._config["strategy"] = value

@@ -14,15 +14,15 @@ def validate_config(config: dict[str, Any]) -> list[str]:
     if "version_pattern" in config and not isinstance(config["version_pattern"], str):
         errors.append("version_pattern must be a string")
 
-    if "bump_keywords" in config:
-        bk = config["bump_keywords"]
-        if not isinstance(bk, dict):
-            errors.append("bump_keywords must be a dictionary")
+    if "patterns" in config:
+        patterns = config["patterns"]
+        if not isinstance(patterns, dict):
+            errors.append("patterns must be a dictionary")
         else:
-            for key, val in bk.items():
+            for key, val in patterns.items():
                 if key.upper() not in BumpLevel.__members__:
                     errors.append(f"Invalid bump level: '{key}'")
                 if not isinstance(val, list) or not all(isinstance(v, str) for v in val):
-                    errors.append(f"Values for bump_keywords['{key}'] must be a list of strings")
+                    errors.append(f"Values for patterns['{key}'] must be a list of strings")
 
     return errors
