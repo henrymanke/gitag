@@ -137,7 +137,7 @@ jobs:
           python-version: 3.11
 
       - name: Install tool
-        run: pip install -e .[dev]
+        run: pip install gitag
 
       - name: Run gitag
         run: gitag --ci --debug --changelog
