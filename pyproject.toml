@@ -33,7 +33,9 @@ dev = ["pytest>=8.0", "pytest-mock", "coverage", "build", "twine"]
 
 [tool.setuptools]
 include-package-data = true
-packages = ["gitag"]
+
+[tool.setuptools.packages.find]
+include = ["gitag*"]
 
 # ✅ Coverage-Konfiguration
 [tool.coverage.run]
