@@ -28,7 +28,7 @@ Built for CI/CD pipelines. Powered by [Semantic Versioning](https://semver.org/)
 ```bash
 git clone https://github.com/henrymanke/gitag.git
 cd gitag
-pip install -e .[dev]
+pip install -e .'[dev]'
 ```
 
 Or symlink it globally:
