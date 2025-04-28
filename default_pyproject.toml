@@ -15,29 +15,30 @@ suffix = ""
 
 # Regex pattern to match semantic versioning with named groups
 # Groups: major, minor, patch, (optional: prerelease, buildmetadata)
-version_pattern = "^v?(\\d+)\\.(\\d+)\\.(\\d+)(?:-([\\w\\.]+))?(?:\\+([\\w\\.]+))?$"
+version_pattern = "^v?(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)(?:-(?P<prerelease>[\\w\\.]+))?(?:\\+(?P<buildmetadata>[\\w\\.]+))?$"
 
-[tool.gitag.bump_keywords]
+[tool.gitag.patterns]
 
-# Keywords that trigger a MAJOR bump
+# Patterns that trigger a MAJOR bump
 major = [
-  "BREAKING CHANGE"
+  "^.*!:",            # Any commit with "!" after type/scope
+  "BREAKING CHANGE:", # Footer breaking change
 ]
 
-# Keywords that trigger a MINOR bump
+# Patterns that trigger a MINOR bump
 minor = [
-  "feat:"
+  "^feat(\\(.*\\))?: ", # feat or feat(scope):
 ]
 
-# Keywords that trigger a PATCH bump
+# Patterns that trigger a PATCH bump
 patch = [
-  "fix:",
-  "perf:",
-  "refactor:",
-  "docs:",
-  "style:",
-  "chore:",
-  "test:",
-  "ci:",
-  "build:"
+  "^fix(\\(.*\\))?: ",
+  "^perf(\\(.*\\))?: ",
+  "^refactor(\\(.*\\))?: ",
+  "^docs(\\(.*\\))?: ",
+  "^style(\\(.*\\))?: ",
+  "^chore(\\(.*\\))?: ",
+  "^test(\\(.*\\))?: ",
+  "^ci(\\(.*\\))?: ",
+  "^build(\\(.*\\))?: ",
 ]

@@ -19,24 +19,24 @@ def test_config_validation_warns_invalid_keywords_type(tmp_path, caplog):
     pyproject.write_text("""
 [tool.gitag]
 prefix = "v"
-bump_keywords = "invalid"
+patterns = "invalid"
 """)
     with caplog.at_level("WARNING"):
         VersionManager(config_path=str(pyproject))
-    assert "bump_keywords must be a dictionary" in caplog.text
+    assert "patterns must be a dictionary" in caplog.text
 
 
 def test_config_validation_warns_invalid_levels(tmp_path, caplog):
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text("""
-[tool.gitag.bump_keywords]
+[tool.gitag.patterns]
 unknown = ["foo:"]
 patch = "fix"
 """)
     with caplog.at_level("WARNING"):
         VersionManager(config_path=str(pyproject))
     assert "Invalid bump level: 'unknown'" in caplog.text
-    assert "Values for bump_keywords['patch'] must be a list of strings" in caplog.text
+    assert "Values for patterns['patch'] must be a list of strings" in caplog.text
 
 
 def test_config_validation_warns_invalid_suffix(tmp_path, caplog):

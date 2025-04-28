@@ -29,19 +29,26 @@ DEFAULT_LEVELS = list(BumpLevel)
 # --- Default Keywords for Conventional Commits ---
 
 DEFAULT_BUMP_KEYWORDS = {
-    BumpLevel.MAJOR: ["BREAKING CHANGE"],
-    BumpLevel.MINOR: ["feat:"],
+    BumpLevel.MAJOR: [
+        r"^.*!:.*",            # `type!: description`
+        r"^BREAKING CHANGE:",  # Footer breaking change
+        r"^BREAKING:"          # simple breaking
+    ],
+    BumpLevel.MINOR: [
+        r"^feat(\(.*\))?:",    # `feat:` oder `feat(scope):`
+        r"^feature(\(.*\))?:",  # alternativ `feature:`
+    ],
     BumpLevel.PATCH: [
-        "fix:",
-        "perf:",
-        "refactor:",
-        "docs:",
-        "style:",
-        "chore:",
-        "test:",
-        "ci:",
-        "build:"
-    ]
+        r"^fix(\(.*\))?:",
+        r"^perf(\(.*\))?:",
+        r"^refactor(\(.*\))?:",
+        r"^docs(\(.*\))?:",
+        r"^style(\(.*\))?:",
+        r"^chore(\(.*\))?:",
+        r"^test(\(.*\))?:",
+        r"^ci(\(.*\))?:",
+        r"^build(\(.*\))?:",
+    ],
 }
 
 

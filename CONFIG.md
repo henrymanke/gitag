@@ -6,16 +6,16 @@ The `gitag` tool supports custom configuration via the `pyproject.toml` file.
 
 ## 📋 Configuration Overview
 
-| Option                              | Type      | Default                | Description                                                                 |
-|-------------------------------------|-----------|------------------------|-----------------------------------------------------------------------------|
-| `prefix`                            | `string`  | `""`                   | Optional prefix added before version tags (e.g. `v1.2.3`)                   |
-| `suffix`                            | `string`  | `""`                   | Optional suffix added after version tags (e.g. `1.2.3-beta`)               |
-| `version_pattern`                   | `string`  | Semantic Versioning    | Regex with named groups to match tags (`major`, `minor`, `patch`, …)       |
-| `merge_strategy`                    | `string`  | `"auto"`               | Controls which commits are considered during a merge (see below)           |
-| `[tool.gitag.bump_keywords]` | `table`   | predefined             | Keyword-based bump detection by level (see below)                           |
-| `bump_keywords.major`               | `list`    | `["BREAKING CHANGE"]`  | Triggers a **major** bump (`1.0.0` → `2.0.0`)                               |
-| `bump_keywords.minor`               | `list`    | `["feat:"]`            | Triggers a **minor** bump (`1.2.0` → `1.3.0`)                               |
-| `bump_keywords.patch`              | `list`    | see below              | Triggers a **patch** bump (`1.2.3` → `1.2.4`)                               |
+| Option                  | Type      | Default                | Description                                                                 |
+|-------------------------|-----------|------------------------|-----------------------------------------------------------------------------|
+| `prefix`                | `string`  | `""`                  | Optional prefix added before version tags (e.g. `v1.2.3`)                   |
+| `suffix`                | `string`  | `""`                  | Optional suffix added after version tags (e.g. `1.2.3-beta`)                |
+| `version_pattern`       | `string`  | Semantic Versioning    | Regex with named groups to match tags (`major`, `minor`, `patch`, …)        |
+| `merge_strategy`        | `string`  | `"auto"`             | Controls which commits are considered during a merge (see below)            |
+| `[tool.gitag.patterns]` | `table`   | predefined             | Regex-based bump detection, grouped by major/minor/patch                     |
+| `patterns.major`        | `list`    | `["BREAKING CHANGE", "!:"]` | Triggers a **major** bump (`1.2.3` → `2.0.0`)                               |
+| `patterns.minor`        | `list`    | `["feat:", "feature:"]` | Triggers a **minor** bump (`1.2.0` → `1.3.0`)                               |
+| `patterns.patch`        | `list`    | see below              | Triggers a **patch** bump (`1.2.3` → `1.2.4`)                               |
 
 ---
 
@@ -63,7 +63,7 @@ Regex pattern to match existing tags.
 > Optionally: `prerelease`, `buildmetadata`
 
 ```toml
-version_pattern = "^v?(\\d+)\\.(\\d+)\\.(\\d+)(?:-([\\w\\.]+))?(?:\\+([\\w\\.]+))?$"
+version_pattern = "^v?(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)(?:-(?P<prerelease>[\\w\\.]+))?(?:\\+(?P<buildmetadata>[\\w\\.]+))?$"
 ```
 
 Supports:
@@ -79,11 +79,11 @@ Supports:
 
 Determines which commits are considered during a merge.
 
-| Value         | Description                                                                 |
-|---------------|-----------------------------------------------------------------------------|
-| `auto`        | Detects if HEAD is a merge commit and uses only the merged feature branch. |
-| `always`      | Uses all commits since the last tag (`<tag>..HEAD`).                        |
-| `merge_only`  | Always uses only the feature branch (HEAD must be a merge commit).         |
+| Value         | Description                                                               |
+|---------------|---------------------------------------------------------------------------|
+| `auto`        | Detects a merge commit and uses only the merged feature branch commits.   |
+| `always`      | Uses all commits since the last tag (`<tag>..HEAD`).                      |
+| `merge_only`  | Always uses only the feature branch (HEAD must be a merge commit).        |
 
 ```toml
 merge_strategy = "auto"
@@ -95,52 +95,53 @@ Recommended: keep `"auto"` for best coverage.
 
 ## 🚀 Bump Strategy via Commit Messages
 
-Bump levels are auto-detected via commit message prefixes.
-
-Declare them under:
+Bump levels are auto-detected via commit message patterns under:
 
 ```toml
-[tool.gitag.bump_keywords]
+[tool.gitag.patterns]
 ```
 
-Each key maps to a version level and accepts a list of match patterns.
-
----
+Each key maps to a version level and accepts a list of regex patterns.
 
 ### 🔼 Major
 
 ```toml
-major = ["BREAKING CHANGE", "!:", "[MAJOR]"]
+[tool.gitag.patterns]
+major = [
+  "!:",            # any commit with '!' in header
+  "BREAKING CHANGE" # explicit breaking change footer
+]
 ```
 
 Triggers bump: `1.2.3` → `2.0.0`
 
----
-
-### 🔼 Minor
+### 🔽 Minor
 
 ```toml
-minor = ["feat:", "feature:", "[MINOR]"]
+[tool.gitag.patterns]
+minor = [
+  "feat:",         # new features
+  "feature:"        # alternate keyword
+]
 ```
 
 Triggers bump: `1.2.3` → `1.3.0`
 
----
-
-### 🔼 Patch
+### 🛠 Patch
 
 ```toml
+[tool.gitag.patterns]
 patch = [
-  "fix:",
-  "perf:",
-  "refactor:",
-  "docs:",
-  "style:",
-  "chore:",
-  "test:",
-  "ci:",
-  "build:",
-  "[PATCH]"
+  "fix:",          # bug fixes
+  "perf:",         # performance improvements
+  "refactor:",     # code restructuring
+  "docs:",         # documentation changes
+  "style:",        # formatting/style
+  "chore:",        # maintenance tasks
+  "test:",         # tests
+  "ci:",           # CI config
+  "build:",        # build system
+  "[PATCH]"        # explicit patch tag
 ]
 ```
 
@@ -150,38 +151,19 @@ Triggers bump: `1.2.3` → `1.2.4`
 
 ## 📌 Default Configuration
 
-Used if no config is found:
+Used if no user config is found:
 
 ```toml
 [tool.gitag]
+merge_strategy   = "auto"
+prefix           = ""
+suffix           = ""
+version_pattern  = "^v?(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)$"
 
-# Strategy for collecting commits
-# auto        – detect merge and use feature branch commits (default)
-# always      – all commits since last tag
-# merge_only  – only commits in the merged branch
-merge_strategy = "auto"
-
-# Optional prefix and suffix
-prefix = ""
-suffix = ""
-
-# Regex for semantic versioning
-version_pattern = "^v?(\\d+)\\.(\\d+)\\.(\\d+)$"
-
-[tool.gitag.bump_keywords]
+[tool.gitag.patterns]
 major = ["BREAKING CHANGE"]
 minor = ["feat:"]
-patch = [
-  "fix:",
-  "perf:",
-  "refactor:",
-  "docs:",
-  "style:",
-  "chore:",
-  "test:",
-  "ci:",
-  "build:"
-]
+patch = ["fix:", "perf:", "refactor:", "docs:", "style:", "chore:", "test:", "ci:", "build:"]
 ```
 
 ---
@@ -190,13 +172,13 @@ patch = [
 
 ```toml
 [tool.gitag]
-prefix = "v"
-suffix = "-rc"
-merge_strategy = "merge_only"
-version_pattern = "^v?(\\d+)\\.(\\d+)\\.(\\d+)(?:-([\\w\\.]+))?(?:\\+([\\w\\.]+))?$"
+prefix          = "v"
+suffix          = "-rc"
+merge_strategy  = "merge_only"
+version_pattern = "^v?(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)(?:-(?P<prerelease>[\\w\\.]+))?(?:\\+(?P<buildmetadata>[\\w\\.]+))?$"
 
-[tool.gitag.bump_keywords]
-major = ["BREAKING CHANGE", "!:", "[MAJOR]"]
+[tool.gitag.patterns]
+major = ["!:", "BREAKING CHANGE", "[MAJOR]"]
 minor = ["feat:", "feature:", "[MINOR]"]
 patch = ["fix:", "chore:", "docs:", "[PATCH]"]
 ```
