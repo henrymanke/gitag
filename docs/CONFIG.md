@@ -1,5 +1,7 @@
 # 🔧 Git Auto Tag – Configuration Guide
 
+[← Back to README](https://github.com/henrymanke/gitag/blob/main/README.md)
+
 The `gitag` tool supports custom configuration via the `pyproject.toml` file.
 
 ---

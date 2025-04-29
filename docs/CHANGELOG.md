@@ -1,6 +1,6 @@
 # (BETA) Changelog
 
-[← Back to README](/README.md)
+[← Back to README](https://github.com/henrymanke/gitag/blob/main/README.md)
 
 All notable changes to this project will be documented in this file.
 
