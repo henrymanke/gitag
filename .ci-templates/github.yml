@@ -25,7 +25,13 @@ jobs:
           python-version: '3.11'
 
       - name: Install Dependencies
-        run: pip install -e .[dev]
+        run: pip install gitag
 
       - name: Auto Tag
         run: gitag --ci --debug --changelog
+      
+      - name: Upload Changelog
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: CHANGELOG.md

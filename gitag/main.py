@@ -1,12 +1,12 @@
 import argparse
+import logging
 import os
 import sys
-import logging
+
 from gitag.auto_tagger import GitAutoTagger
 from gitag.config import MergeStrategy
 from gitag.git_repo import GitRepo
 from gitag.utils.logging_setup import setup_logging
-
 
 logger = logging.getLogger("gitag")
 
@@ -40,10 +40,7 @@ def main(argv=None):
         help="Strategy to determine which commits to include: auto, always, or merge_only",
     )
     parser.add_argument(
-        "--no-merges",
-        dest="include_merges",
-        action="store_false",
-        help="Exclude merge commits from changelog"
+        "--no-merges", dest="include_merges", action="store_false", help="Exclude merge commits from changelog"
     )
 
     parser.add_argument("--config", type=str, help="Path to pyproject.toml config")

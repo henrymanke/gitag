@@ -1,17 +1,16 @@
 import os
-from gitag.config import MergeStrategy
 import subprocess
-import pytest
-from gitag.git_repo import GitRepo
 from unittest import mock
+
+import pytest
+
+from gitag.config import MergeStrategy
+from gitag.git_repo import GitRepo
 
 
 def test_get_latest_tag_mock():
     with mock.patch("subprocess.run") as mocked:
-        mocked.side_effect = [
-            mock.Mock(returncode=0),  # fetch
-            mock.Mock(returncode=0, stdout="v1.2.3\n")
-        ]
+        mocked.side_effect = [mock.Mock(returncode=0), mock.Mock(returncode=0, stdout="v1.2.3\n")]  # fetch
         repo = GitRepo(debug=True)
         assert repo.get_latest_tag() == "v1.2.3"
 
@@ -204,8 +203,10 @@ def test_get_latest_tag_fallback_used():
 
 
 def test_get_commit_messages_raises_and_exits():
-    with mock.patch("subprocess.run", side_effect=subprocess.CalledProcessError(1, "git log")), \
-            mock.patch("sys.exit") as exit_mock:
+    with (
+        mock.patch("subprocess.run", side_effect=subprocess.CalledProcessError(1, "git log")),
+        mock.patch("sys.exit") as exit_mock,
+    ):
         repo = GitRepo(debug=True)
         repo.get_commit_messages("v0.1.0")
         exit_mock.assert_called_once_with(1)
@@ -228,8 +229,7 @@ def test_create_tag_fails_if_exists(caplog):
 
 
 def test_create_tag_and_push(monkeypatch):
-    with mock.patch("gitag.git_repo.GitRepo.tag_exists", return_value=False), \
-            mock.patch("subprocess.run") as mocked:
+    with mock.patch("gitag.git_repo.GitRepo.tag_exists", return_value=False), mock.patch("subprocess.run") as mocked:
         repo = GitRepo()
         result = repo.create_tag("v3.0.0", push=True)
         assert result is True
@@ -237,19 +237,21 @@ def test_create_tag_and_push(monkeypatch):
 
 
 def test_create_tag_push_fails(monkeypatch):
-    with mock.patch("gitag.git_repo.GitRepo.tag_exists", return_value=False), \
-            mock.patch("subprocess.run", side_effect=[None, subprocess.CalledProcessError(1, "push")]), \
-            mock.patch("sys.exit") as exit_mock:
+    with (
+        mock.patch("gitag.git_repo.GitRepo.tag_exists", return_value=False),
+        mock.patch("subprocess.run", side_effect=[None, subprocess.CalledProcessError(1, "push")]),
+        mock.patch("sys.exit") as exit_mock,
+    ):
         repo = GitRepo()
         repo.create_tag("v3.3.3", push=True)
         exit_mock.assert_called_once_with(1)
 
 
 def test_get_latest_tag_fallback_no_tags():
-    with mock.patch("subprocess.run", side_effect=[
-        subprocess.CalledProcessError(1, "describe"),
-        subprocess.CalledProcessError(1, "tag")
-    ]):
+    with mock.patch(
+        "subprocess.run",
+        side_effect=[subprocess.CalledProcessError(1, "describe"), subprocess.CalledProcessError(1, "tag")],
+    ):
         repo = GitRepo(debug=True)
         tag = repo.get_latest_tag()
         assert tag is None
@@ -301,8 +303,10 @@ def test_merge_strategy_invalid(caplog):
 
 def test_get_commit_messages_exit_with_debug(caplog):
     caplog.set_level("DEBUG")
-    with mock.patch("subprocess.run", side_effect=subprocess.CalledProcessError(1, ["git", "log"])), \
-            mock.patch("sys.exit") as exit_mock:
+    with (
+        mock.patch("subprocess.run", side_effect=subprocess.CalledProcessError(1, ["git", "log"])),
+        mock.patch("sys.exit") as exit_mock,
+    ):
 
         repo = GitRepo(debug=True)
         repo.get_commit_messages("v0.1.0")
@@ -314,8 +318,10 @@ def test_get_commit_messages_exit_with_debug(caplog):
 
 def test_get_commit_messages_exit_without_debug(caplog):
     caplog.set_level("DEBUG")
-    with mock.patch("subprocess.run", side_effect=subprocess.CalledProcessError(1, ["git", "log"])), \
-            mock.patch("sys.exit") as exit_mock:
+    with (
+        mock.patch("subprocess.run", side_effect=subprocess.CalledProcessError(1, ["git", "log"])),
+        mock.patch("sys.exit") as exit_mock,
+    ):
 
         repo = GitRepo(debug=False)
         repo.get_commit_messages("v0.1.0")

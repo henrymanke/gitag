@@ -9,7 +9,7 @@ pipeline {
         sh '''
           python3 -m venv venv
           . venv/bin/activate
-          pip install -e .[dev]
+          pip install gitag
           git config --global user.name "ci-bot"
           git config --global user.email "ci@example.com"
           gitag --ci --debug --changelog

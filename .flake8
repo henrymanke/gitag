@@ -1,38 +1,92 @@
-# Setup file for flake8
 [flake8]
-
-# Rules
 max-line-length = 120
-
-ignore =
-
-    # Django - Unused imports
-    F401,
-
-    # sync to black formatter
-
-    # Whitespace before ‘:’ is handled differently by Black than required by PEP 8.
-    E203,
-
-    # Too many leading # for block comments. Black does not modify comments, but it is good to ignore this rule if Black modifies other parts of the code.
-    E266,
-
-    # Necessary for GitHub - you can use it locally: Line too long. Black already controls the line length, so this rule is superfluous if Black is used.
-    # E501,
-
-    # Line break before binary operator. Black breaks lines before binary operators, which is contrary to the PEP 8 guideline followed by this rule.
-    W503,
-
+extend-ignore = E203, W503
+select = E, F, B, D
 
 exclude =
     .git,
+    */site-packages/*,
     __pycache__,
-    old,
+    *.py[cod],
+    *$py.class,
+    *.so,
+    .Python,
     build,
+    develop-eggs,
     dist,
-    # django
-    migrations,
-    # ignore venv
+    downloads,
+    eggs,
+    .eggs,
+    lib,
+    lib64,
+    parts,
+    sdist,
+    var,
+    wheels,
+    share/python-wheels,
+    *.egg-info,
+    .installed.cfg,
+    *.egg,
+    MANIFEST,
+    *.manifest,
+    *.spec,
+    pip-log.txt,
+    pip-delete-this-directory.txt,
+    htmlcov,
+    .tox,
+    .nox,
+    .coverage,
+    .coverage.*,
+    .cache,
+    nosetests.xml,
+    coverage.xml,
+    *.cover,
+    *.py,cover,
+    .hypothesis,
+    .pytest_cache,
+    cover,
+    *.mo,
+    *.pot,
+    *.log,
+    local_settings.py,
+    db.sqlite3,
+    db.sqlite3-journal,
+    instance,
+    .webassets-cache,
+    .scrapy,
+    docs/_build,
+    .pybuilder,
+    target,
+    .ipynb_checkpoints,
+    profile_default,
+    ipython_config.py,
+    .python-version,
+    .pdm.toml,
+    .pdm-python,
+    .pdm-build,
+    __pypackages__,
+    celerybeat-schedule,
+    celerybeat.pid,
+    *.sage.py,
+    .env,
+    .venv,
     env,
-    venv
-    docs/*
+    venv,
+    ENV,
+    env.bak,
+    venv.bak,
+    .spyderproject,
+    .spyproject,
+    .ropeproject,
+    site,
+    .mypy_cache,
+    .dmypy.json,
+    dmypy.json,
+    .pyre,
+    .pytype,
+    cython_debug,
+    .idea,
+    .ruff_cache,
+    .pypirc,
+    .DS_Store
+

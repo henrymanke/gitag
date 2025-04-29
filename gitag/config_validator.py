@@ -1,5 +1,6 @@
-from gitag.config import BumpLevel
 from typing import Any
+
+from gitag.config import BumpLevel
 
 
 def validate_config(config: dict[str, Any]) -> list[str]:

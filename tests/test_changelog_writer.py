@@ -1,8 +1,10 @@
-import re
-from unittest import mock
 import datetime
-import pytest
+import re
 from pathlib import Path
+from unittest import mock
+
+import pytest
+
 from gitag.changelog_writer import ChangelogWriter
 from gitag.config import BumpLevel
 
@@ -13,7 +15,7 @@ def test_write_changelog_default(tmp_path):
     commits = {
         str(BumpLevel.PATCH): ["fix: typo"],
         str(BumpLevel.MINOR): ["feat: something new"],
-        str(BumpLevel.MAJOR): ["BREAKING CHANGE: removed endpoint"]
+        str(BumpLevel.MAJOR): ["BREAKING CHANGE: removed endpoint"],
     }
     writer.write("v1.2.3", commits)
 
@@ -66,11 +68,7 @@ def test_write_changelog_empty_sections(tmp_path):
 def test_custom_sections_order(tmp_path):
     path = tmp_path / "CHANGELOG.md"
     writer = ChangelogWriter(path=path)
-    commits = {
-        "major": ["BREAKING: drop python 3.6"],
-        "minor": ["feat: dashboard"],
-        "patch": ["fix: typo"]
-    }
+    commits = {"major": ["BREAKING: drop python 3.6"], "minor": ["feat: dashboard"], "patch": ["fix: typo"]}
     writer.write("v3.0.0", commits)
 
     content = path.read_text()
@@ -93,7 +91,8 @@ def test_write_changelog_no_changes(tmp_path):
 def test_append_to_existing_changelog(tmp_path):
     path = tmp_path / "CHANGELOG.md"
     # Fake existing changelog with TOC and old tag
-    path.write_text("""# 📘 Changelog Overview
+    path.write_text(
+        """# 📘 Changelog Overview
 | Version | Date | Major | Minor | Patch |
 |:-------:|:----:|:-----:|:-----:|:-----:|
 
@@ -102,7 +101,8 @@ def test_append_to_existing_changelog(tmp_path):
 ### Patch Changes
 
 - fix: old bug
-""")
+"""
+    )
 
     writer = ChangelogWriter(path=path, mode="append")
     commits = {str(BumpLevel.MINOR): ["feat: added stuff"]}
@@ -134,10 +134,12 @@ def test_write_changelog_without_date(tmp_path):
 
 def test_append_with_only_toc(tmp_path):
     path = tmp_path / "CHANGELOG.md"
-    path.write_text("""# 📘 Changelog Overview
+    path.write_text(
+        """# 📘 Changelog Overview
 | Version | Date | Major | Minor | Patch |
 |:-------:|:----:|:-----:|:-----:|:-----:|
-""")
+"""
+    )
 
     writer = ChangelogWriter(path=path, mode="append")
     commits = {"minor": ["feat: fresh start"]}
@@ -150,13 +152,15 @@ def test_append_with_only_toc(tmp_path):
 
 def test_append_block_without_match(tmp_path):
     path = tmp_path / "CHANGELOG.md"
-    path.write_text("""# 📘 Changelog Overview
+    path.write_text(
+        """# 📘 Changelog Overview
 | Version | Date | Major | Minor | Patch |
 |:-------:|:----:|:-----:|:-----:|:-----:|
 
 ---  # Leerer Block ohne ##-Header
 Random garbage
-""")
+"""
+    )
 
     writer = ChangelogWriter(path=path, mode="append")
     commits = {"minor": ["feat: new feature"]}
@@ -171,7 +175,8 @@ Random garbage
 
 def test_append_block_with_same_tag(tmp_path):
     path = tmp_path / "CHANGELOG.md"
-    path.write_text("""# 📘 Changelog Overview
+    path.write_text(
+        """# 📘 Changelog Overview
 | Version | Date | Major | Minor | Patch |
 |:-------:|:----:|:-----:|:-----:|:-----:|
 
@@ -180,7 +185,8 @@ def test_append_block_with_same_tag(tmp_path):
 ### Patch Changes
 
 - fix: old patch
-""")
+"""
+    )
 
     writer = ChangelogWriter(path=path, mode="append")
     # same tag version, should not appear twice

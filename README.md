@@ -4,114 +4,121 @@
   <img src="https://raw.githubusercontent.com/henrymanke/gitag/main/assets/gitag.svg" alt="gitag logo" width="180"/>
 </p>
 
-**A modern CLI tool for automatic Git tagging based on commit messages.**  
-Built for CI/CD pipelines. Powered by [Semantic Versioning](https://semver.org/). Tested. Flexible. Extendable.
+**gitag** is a modern CLI tool that parses commit messages following [Conventional Commits](https://www.conventionalcommits.org/) and applies [Semantic Versioning](https://semver.org/) automatically — perfect for CI/CD pipelines.
+
+| Commit Pattern                                                                                  | Bump Level | Version Change     |
+|-------------------------------------------------------------------------------------------------|------------|--------------------|
+| `!:`, `BREAKING CHANGE:`                                                                       | **major**  | `1.2.3` → `2.0.0`  |
+| `feat(...)`, `feature(...)`                                                                    | **minor**  | `1.2.3` → `1.3.0`  |
+| `fix(...)`, `perf(...)`, `refactor(...)`, `docs(...)`, `style(...)`, `chore(...)`, `test(...)`,<br>`ci(...)`, `build(...)` | **patch**  | `1.2.3` → `1.2.4`  |
 
 ---
 
-## ✨ Features
+## 📖 Table of Contents
 
-- ✅ Semantic Versioning (`major`, `minor`, `patch`)
-- 🔍 Detects latest Git tag (e.g. `v1.2.3`)
-- 🧠 Commit-based version bump detection (configurable)
-- 📄 Optional `CHANGELOG.md` generation
-- 🔁 `--dry-run` mode support
-- 🚀 Pushes tags via `GH_TOKEN` / `GITHUB_TOKEN`
-- ⚙️ Configurable via `pyproject.toml`
-- 🔀 Flexible merge commit strategies
-- 🧪 100% tested (Pytest + Git mocks)
+- [⚡ Quickstart](#quickstart)
+- [✨ Features](#features)
+- [🛠️ Commit Mapping & Version Bumps](#commit-mapping--version-bumps)
+- [📦 Installation](#installation)
+- [🔧 CLI Reference](#cli-reference)
+- [🤖 GitHub Actions Example](#github-actions-example)
+- [⚙️ Configuration](#configuration)
+- [📚 Deep Dive Documentation](#deep-dive-documentation)
+- [🤝 Contributing & 📄 License](#contributing---license)
 
 ---
 
-## 📦 Installation
+## Quickstart
+
+1. **Install** 📦
+
+   ```bash
+   pip install gitag
+   ```
+
+2. **Preview tag** 🔍
+
+   ```bash
+   gitag --dry-run
+   ```
+
+3. **Tag & Changelog** 🔁
+
+   ```bash
+   gitag --ci --changelog
+   ```
+
+For development:
 
 ```bash
 git clone https://github.com/henrymanke/gitag.git
 cd gitag
-pip install -e .'[dev]'
+pip install -e .[dev]
 ```
 
-Or symlink it globally:
+---
+
+## Features
+
+- ✅ Semantic Versioning (major, minor, patch)
+- 🔍 Detect latest Git tag
+- 🧠 Commit-based bump detection via Conventional Commits
+- 📄 (BETA) Optional CHANGELOG.md generation
+- 🔁 Dry-run & CI modes
+- 🚀 Push tags via `GITHUB_TOKEN`
+- ⚙️ Configurable via `pyproject.toml`
+- 🔀 Flexible merge commit strategies
+- 🧪 100% tested with pytest and mocks
+
+---
+
+## Commit Mapping & Version Bumps
+
+| Commit Type          | Bump Level | Example                             | Spec Reference  |
+|----------------------|------------|-------------------------------------|-----------------|
+| `BREAKING CHANGE:`   | **major**  | `BREAKING CHANGE: update API method` | [SemVer](https://semver.org/#spec-item-4) |
+| `feat:` / `feature:` | **minor**  | `feat: add new export feature`      | [Conventional Commits](https://www.conventionalcommits.org/) |
+| `fix:` / `chore:`     | **patch**  | `fix: correct typo in docs`         | [Conventional Commits](https://www.conventionalcommits.org/) |
+
+---
+
+## Installation
+
+Install from PyPI:
 
 ```bash
-ln -s $(pwd)/gitag/main.py /usr/local/bin/gitag
+pip install gitag
+```
+
+Or install for development:
+
+```bash
+git clone https://github.com/henrymanke/gitag.git
+cd gitag
+pip install -e .[dev]
 ```
 
 ---
 
-## 🔧 CLI Options
+## CLI Reference
 
-| Flag               | Description                                                                 |
-|--------------------|-----------------------------------------------------------------------------|
-| `--dry-run`        | Preview the next tag without applying it                                    |
-| `--debug`          | Show verbose output                                                         |
-| `--push`           | Push the tag to origin                                                      |
-| `--since-tag`      | Compare commits since a specific tag                                        |
-| `--changelog`      | Write changes to `CHANGELOG.md`                                             |
-| `--pre`            | Add pre-release label (e.g. `--pre alpha.1`)                                |
-| `--build`          | Add build metadata (e.g. `--build 123abc`)                                  |
-| `--no-merges`      | Exclude merge commits from analysis                                         |
-| `--ci`             | Enable CI mode (auto-detects push or dry-run)                               |
-| `--config`         | Path to `pyproject.toml` (default: `pyproject.toml` in root)                |
-| `--merge-strategy` | Override commit selection strategy (`auto`, `always`, `merge_only`)         |
+| Command            | Description                                         |
+|--------------------|-----------------------------------------------------|
+| `--dry-run`        | Preview the next tag without applying it            |
+| `--changelog`      | Generate or update CHANGELOG.md                     |
+| `--push`           | Push the new tag to the remote repository           |
+| `--pre <label>`    | Add a pre-release label (e.g. `alpha.1`)            |
+| `--build <meta>`   | Include build metadata (e.g. `123abc`)              |
+| `--config <path>`  | Path to pyproject.toml (default: project root)      |
+| `--merge-strategy` | Override bump strategy (`auto`, `always`, `merge_only`) |
 
-💡 Alternatively, use `merge_strategy` via config – see below.
+See [Advanced CLI Options](<https://github.com/henrymanke/gitag/blob/main/docs/CONFIG.md#cli-options>) for full list.
 
 ---
 
-## 🧠 How It Works
+## GitHub Actions Example
 
-1. Detects the latest Git tag
-2. Collects commits since that tag (based on `merge_strategy`)
-3. Determines bump level:
-   - `feat:` → **minor**
-   - `fix:` / `chore:` etc. → **patch**
-   - `BREAKING CHANGE:` → **major**
-4. Generates the next version
-5. Optionally updates `CHANGELOG.md` and pushes the tag
-
-If no tag is found, it starts from `0.0.0`.
-
----
-
-## ⚙️ Configuration (`pyproject.toml`)
-
-Define a `[tool.gitag]` section:
-
-```toml
-[tool.gitag]
-
-# Optional prefix/suffix
-prefix = "v"
-suffix = "-rc"
-
-# Optional regex for tag parsing
-version_pattern = "^v?(\\d+)\\.(\\d+)\\.(\\d+)(?:-([\\w\\.]+))?(?:\\+([\\w\\.]+))?$"
-
-# Merge strategy for collecting commits
-merge_strategy = "auto"  # auto | always | merge_only
-
-[tool.gitag.bump_keywords]
-major = ["BREAKING CHANGE", "!:", "[MAJOR]"]
-minor = ["feat:", "feature:", "[MINOR]"]
-patch = ["fix:", "chore:", "docs:", "[PATCH]"]
-```
-
-📘 Full guide: [`Config.md`](./CONFIG.md)
-
----
-
-## 📊 Exit Codes
-
-| Code | Meaning                             |
-|------|-------------------------------------|
-| `0`  | Success                             |
-| `1`  | Runtime or Git error                |
-| `2`  | No commits found since last tag     |
-
----
-
-## 🔁 Example GitHub Action
+Save as `.github/workflows/auto-tag.yml`:
 
 ```yaml
 name: Auto Tag
@@ -123,67 +130,80 @@ on:
 jobs:
   tag:
     runs-on: ubuntu-latest
+
+    # Allow this workflow to push tags and artifacts
     permissions:
       contents: write
+
+    # GitHub token for pushing tags and uploading artifacts
     env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # or use a personal token for cross-repo support
+
     steps:
-      - uses: actions/checkout@v4
+      # 1. Checkout the full repository (including all tags and history)
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0          # Needed to find the latest tag
+          token: ${{ env.GH_TOKEN }}
 
-      - uses: actions/setup-python@v5
+      # 2. Set up Python 3.11 environment
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.11
+          python-version: "3.11"
+          cache: "pip"
 
-      - name: Install tool
+      # 3. Install the gitag CLI tool
+      - name: Install gitag
         run: pip install gitag
 
-      - name: Run gitag
+      # 4. Run gitag in CI mode and generate the changelog
+      - name: Run gitag (CI mode + changelog)
         run: gitag --ci --debug --changelog
+
+      # 5. Upload the generated CHANGELOG.md as a build artifact
+      - name: Upload generated changelog
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: CHANGELOG.md
 ```
 
+Commit and push — workflow runs on every push to `main`.
+
 ---
 
-## ✅ Testing
+## Configuration
 
-```bash
-pytest
+Add to `pyproject.toml`:
+
+```toml
+[tool.gitag]
+prefix = "v"
+merge_strategy = "auto"
+
+[tool.gitag.bump_keywords]
+major = ["BREAKING CHANGE"]
+minor = ["feat:"]
+patch = ["fix:"]
 ```
 
-Tested components:
-
-- 🔧 Version bumping
-- 🧪 Commit parsing & changelog grouping
-- ⚙️ CI token detection
-- 🔁 Merge detection strategies
-- 🛠 Config loading via `pyproject.toml`
+See [Config Reference](https://github.com/henrymanke/gitag/blob/main/docs/CONFIG.md) for details.
 
 ---
 
-## 📚 Related Files
+## Deep Dive Documentation
 
-- [`Config.md`](./Config.md) – Configuration guide
-- [`default_pyproject.toml`](./default_pyproject.toml) – Example config fallback
-- [`default_config.py`](./gitag/config.py) – Hardcoded defaults
-- [`CHANGELOG.md`](./CHANGELOG.md) – Optional changelog output
-
----
-
-## 🧠 Why?
-
-Semantic versioning is great. But remembering to bump tags or changelogs manually? Not so much.  
-This tool automates that process — reliably, consistently, and CI-friendly.
+- [Config Reference](https://github.com/henrymanke/gitag/blob/main/docs/CONFIG.md)
+- [CHANGELOG Guide](https://github.com/henrymanke/gitag/blob/main/docs/CHANGELOG.md)
+- [Default Config](https://github.com/henrymanke/gitag/blob/main/default_pyproject.toml)
+- [Architecture Overview](https://github.com/henrymanke/gitag/blob/main/docs/ARCHITECTURE.md)
 
 ---
 
-## 📄 License
+## Contributing &  License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+Contributions are welcome! Read [CONTRIBUTING.md](docs/CONTRIBUTING.md).  
 
----
-
-## 🤝 Contributing
-
-Feedback, issues, and pull requests are welcome!  
-Please read our [Contributing Guidelines](CONTRIBUTING.md) to learn how to get started. ✨
+Licensed under the MIT License — see [LICENSE](LICENSE) for details.

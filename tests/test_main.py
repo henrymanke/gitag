@@ -1,8 +1,10 @@
 import os
-from gitag.main import detect_ci_context
-import pytest
 from unittest import mock
+
+import pytest
+
 from gitag import main as main_module
+from gitag.main import detect_ci_context
 
 
 @mock.patch("gitag.main.GitAutoTagger")
@@ -14,11 +16,10 @@ def test_main_dry_run(mock_tagger):
 
 
 @mock.patch("gitag.main.GitAutoTagger")
-@mock.patch.dict("os.environ", {
-    "GITHUB_ACTIONS": "true",
-    "GITHUB_EVENT_NAME": "pull_request",
-    "GITHUB_REF": "refs/heads/feature-branch"
-})
+@mock.patch.dict(
+    "os.environ",
+    {"GITHUB_ACTIONS": "true", "GITHUB_EVENT_NAME": "pull_request", "GITHUB_REF": "refs/heads/feature-branch"},
+)
 def test_main_ci_detection_pr(mock_tagger):
     result = main_module.main(["--ci"])
     assert result == 0
@@ -30,11 +31,7 @@ def test_main_ci_detection_pr(mock_tagger):
 
 
 @mock.patch("gitag.main.GitAutoTagger")
-@mock.patch.dict("os.environ", {
-    "GITHUB_ACTIONS": "true",
-    "GITHUB_EVENT_NAME": "push",
-    "GITHUB_REF": "refs/heads/main"
-})
+@mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "GITHUB_EVENT_NAME": "push", "GITHUB_REF": "refs/heads/main"})
 def test_main_ci_main_branch_enables_push(mock_tagger):
     result = main_module.main(["--ci"])
     assert result == 0
@@ -43,38 +40,26 @@ def test_main_ci_main_branch_enables_push(mock_tagger):
     assert kwargs["push"] is True
 
 
-@mock.patch.dict(os.environ, {
-    "GITLAB_CI": "true",
-    "CI_MERGE_REQUEST_ID": "123",
-    "CI_COMMIT_REF_NAME": "main"
-}, clear=True)
+@mock.patch.dict(
+    os.environ, {"GITLAB_CI": "true", "CI_MERGE_REQUEST_ID": "123", "CI_COMMIT_REF_NAME": "main"}, clear=True
+)
 def test_detect_gitlab_ci():
     assert detect_ci_context() == ("gitlab", True, True)
 
 
-@mock.patch.dict(os.environ, {
-    "CIRCLECI": "true",
-    "CIRCLE_PULL_REQUEST": "true",
-    "CIRCLE_BRANCH": "main"
-}, clear=True)
+@mock.patch.dict(os.environ, {"CIRCLECI": "true", "CIRCLE_PULL_REQUEST": "true", "CIRCLE_BRANCH": "main"}, clear=True)
 def test_detect_circleci():
     assert detect_ci_context() == ("circleci", True, True)
 
 
-@mock.patch.dict(os.environ, {
-    "BITBUCKET_BUILD_NUMBER": "123",
-    "BITBUCKET_PR_ID": "1",
-    "BITBUCKET_BRANCH": "main"
-}, clear=True)
+@mock.patch.dict(
+    os.environ, {"BITBUCKET_BUILD_NUMBER": "123", "BITBUCKET_PR_ID": "1", "BITBUCKET_BRANCH": "main"}, clear=True
+)
 def test_detect_bitbucket():
     assert detect_ci_context() == ("bitbucket", True, True)
 
 
-@mock.patch.dict(os.environ, {
-    "JENKINS_HOME": "/var/jenkins_home",
-    "CHANGE_ID": "5",
-    "BRANCH_NAME": "main"
-}, clear=True)
+@mock.patch.dict(os.environ, {"JENKINS_HOME": "/var/jenkins_home", "CHANGE_ID": "5", "BRANCH_NAME": "main"}, clear=True)
 def test_detect_jenkins():
     assert detect_ci_context() == ("jenkins", True, True)
 
@@ -92,11 +77,7 @@ def test_main_entrypoint(monkeypatch):
 
 
 @mock.patch("gitag.main.GitAutoTagger")
-@mock.patch.dict("os.environ", {
-    "GITHUB_ACTIONS": "true",
-    "GITHUB_EVENT_NAME": "push",
-    "GITHUB_REF": "refs/heads/dev"
-})
+@mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "GITHUB_EVENT_NAME": "push", "GITHUB_REF": "refs/heads/dev"})
 def test_main_ci_non_main_branch_enables_dry_run(mock_tagger, caplog):
     caplog.set_level("INFO")
 
