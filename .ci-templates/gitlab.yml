@@ -9,7 +9,7 @@ auto_tag:
     GIT_SUBMODULE_STRATEGY: recursive
     GIT_DEPTH: "0"
   script:
-    - pip install -e .[dev]
+    - pip install gitag
     - git config --global user.name "ci-bot"
     - git config --global user.email "ci@example.com"
     - gitag --ci --debug --changelog

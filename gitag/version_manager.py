@@ -57,16 +57,11 @@ class VersionManager:
             self.patterns = raw_patterns
         else:
             if raw_patterns is not None:
-                logger.error(
-                    f"❌ Invalid 'patterns' config: expected table, got {type(raw_patterns).__name__}"
-                )
+                logger.error(f"❌ Invalid 'patterns' config: expected table, got {type(raw_patterns).__name__}")
             # Fallback auf DEFAULT_BUMP_KEYWORDS aus gitag.config
             from gitag.config import DEFAULT_BUMP_KEYWORDS
 
-            self.patterns = {
-                level.name.lower(): patterns
-                for level, patterns in DEFAULT_BUMP_KEYWORDS.items()
-            }
+            self.patterns = {level.name.lower(): patterns for level, patterns in DEFAULT_BUMP_KEYWORDS.items()}
             logger.info("⚠️ Using default bump-patterns from DEFAULT_BUMP_KEYWORDS")
 
         # Merge strategy
@@ -112,14 +107,13 @@ class VersionManager:
 
     def strip_prefix_suffix(self, version: str) -> str:
         if self.prefix and version.startswith(self.prefix):
-            version = version[len(self.prefix):]
+            version = version[len(self.prefix) :]
         if self.suffix and version.endswith(self.suffix):
-            version = version[:-len(self.suffix)]
+            version = version[: -len(self.suffix)]
         return version
 
     def bump_version(
-        self, current_version: str, level: BumpLevel,
-        pre: Optional[str] = None, build: Optional[str] = None
+        self, current_version: str, level: BumpLevel, pre: Optional[str] = None, build: Optional[str] = None
     ) -> str:
         if isinstance(level, str):
             try:

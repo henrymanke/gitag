@@ -1,8 +1,9 @@
 import logging
-from gitag.git_repo import GitRepo
-from gitag.version_manager import VersionManager
+
 from gitag.changelog_writer import ChangelogWriter
 from gitag.config import MergeStrategy
+from gitag.git_repo import GitRepo
+from gitag.version_manager import VersionManager
 
 logger = logging.getLogger(__name__)
 

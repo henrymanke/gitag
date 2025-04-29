@@ -1,7 +1,9 @@
-import pytest
 from pathlib import Path
-from gitag.version_manager import VersionManager
+
+import pytest
+
 from gitag.config import BumpLevel
+from gitag.version_manager import VersionManager
 
 
 @pytest.fixture(autouse=True)
@@ -50,7 +52,8 @@ def test_pattern_strategy_detection():
 
 def test_patterns_in_pyproject(tmp_path, monkeypatch):
     pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(r"""
+    pyproject.write_text(
+        r"""
 [tool.gitag]
 version_pattern = "^v?(\\d+)\\.(\\d+)\\.(\\d+)$"
 prefix = "v"
@@ -59,7 +62,8 @@ prefix = "v"
 major = ["^Start", "^.*!:", "BREAKING CHANGE:"]
 minor = ["^feat:", "^.*#:", "(?i)feat:", "???"]
 patch = ["^fix:"]
-""")
+"""
+    )
     monkeypatch.chdir(tmp_path)
 
     vm = VersionManager()
@@ -95,13 +99,16 @@ def test_prefix_and_suffix_handling():
     assert result == "ver-1.2.4-stable"
 
 
-@pytest.mark.parametrize("prefix,suffix,current_version,expected", [
-    ("v", "", "1.2.3", "v1.2.4"),
-    ("", "-stable", "1.2.3", "1.2.4-stable"),
-    ("ver-", "-prod", "1.2.3", "ver-1.2.4-prod"),
-    ("release-", "", "1.2.3", "release-1.2.4"),
-    ("", "", "1.2.3", "1.2.4"),
-])
+@pytest.mark.parametrize(
+    "prefix,suffix,current_version,expected",
+    [
+        ("v", "", "1.2.3", "v1.2.4"),
+        ("", "-stable", "1.2.3", "1.2.4-stable"),
+        ("ver-", "-prod", "1.2.3", "ver-1.2.4-prod"),
+        ("release-", "", "1.2.3", "release-1.2.4"),
+        ("", "", "1.2.3", "1.2.4"),
+    ],
+)
 def test_patch_with_prefix_suffix(prefix, suffix, current_version, expected):
     vm = create_vm(prefix=prefix, suffix=suffix)
     assert vm.bump_version(current_version, BumpLevel.PATCH) == expected
@@ -166,6 +173,7 @@ def test_strip_prefix_suffix_full():
 def test_missing_default_and_user_config_warns(monkeypatch, tmp_path, caplog):
     # simuliert, dass weder default_pyproject.toml noch pyproject.toml existieren
     import gitag.version_manager as vm_mod
+
     monkeypatch.chdir(tmp_path)
     # Path.exists überall false machen
     monkeypatch.setattr(vm_mod.Path, "exists", lambda self: False)

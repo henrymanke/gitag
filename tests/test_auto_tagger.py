@@ -1,5 +1,7 @@
-import pytest
 from unittest import mock
+
+import pytest
+
 from gitag.auto_tagger import GitAutoTagger
 
 
@@ -47,10 +49,7 @@ def test_run_with_changelog_written():
     tagger.changelog_writer.write = mock.Mock()
 
     tagger.run(dry_run=True)
-    tagger.changelog_writer.write.assert_called_once_with(
-        tag="v1.0.1",
-        categorized_commits={"feat": ["feat: x"]}
-    )
+    tagger.changelog_writer.write.assert_called_once_with(tag="v1.0.1", categorized_commits={"feat": ["feat: x"]})
 
 
 def test_run_creates_tag_and_prints_success(caplog):

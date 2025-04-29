@@ -1,8 +1,9 @@
+import logging
 import os
 import re
-import logging
 from datetime import datetime
 from typing import Optional
+
 from gitag.config import DEFAULT_LEVELS, BumpLevel
 
 logger = logging.getLogger(__name__)
@@ -82,7 +83,7 @@ class ChangelogWriter:
                         existing_body += f"---\n\n{block.strip()}\n"
 
         toc = self._generate_toc(entries).strip()
-        final_parts = [toc, '---', new_entry.strip()]
+        final_parts = [toc, "---", new_entry.strip()]
 
         if existing_body.strip():
             final_parts.append(existing_body.strip())
