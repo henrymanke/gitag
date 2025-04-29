@@ -1,5 +1,7 @@
 # CONTRIBUTING.md
 
+[← Back to README](https://github.com/henrymanke/gitag/blob/main/README.md)
+
 Thank you for your interest in contributing to **gitag**! To ensure a smooth review and integration process, please follow these steps:
 
 ## 1. Open an Issue

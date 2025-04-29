@@ -1,6 +1,6 @@
 # Architecture Overview
 
-[← Back to README](/README.md)
+[← Back to README](https://github.com/henrymanke/gitag/blob/main/README.md)
 
 This document provides a high-level overview of **gitag**'s architecture, outlining modules, components, and the data flow.
 

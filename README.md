@@ -16,15 +16,15 @@
 
 ## 📖 Table of Contents
 
-- [⚡ Quickstart](#quickstart)
-- [✨ Features](#features)
-- [🛠️ Commit Mapping & Version Bumps](#commit-mapping--version-bumps)
-- [📦 Installation](#installation)
-- [🔧 CLI Reference](#cli-reference)
-- [🤖 GitHub Actions Example](#github-actions-example)
-- [⚙️ Configuration](#configuration)
-- [📚 Deep Dive Documentation](#deep-dive-documentation)
-- [🤝 Contributing & 📄 License](#contributing---license)
+- [⚡ Quickstart](https://github.com/henrymanke/gitag/blob/main/README.md#quickstart)
+- [✨ Features](https://github.com/henrymanke/gitag/blob/main/README.md#features)
+- [🛠️ Commit Mapping & Version Bumps](https://github.com/henrymanke/gitag/blob/main/README.md#commit-mapping--version-bumps)
+- [📦 Installation](https://github.com/henrymanke/gitag/blob/main/README.md#installation)
+- [🔧 CLI Reference](https://github.com/henrymanke/gitag/blob/main/README.md#cli-reference)
+- [🤖 GitHub Actions Example](https://github.com/henrymanke/gitag/blob/main/README.md#github-actions-example)
+- [⚙️ Configuration](https://github.com/henrymanke/gitag/blob/main/README.md#configuration)
+- [📚 Deep Dive Documentation](https://github.com/henrymanke/gitag/blob/main/README.md#deep-dive-documentation)
+- [🤝 Contributing & 📄 License](https://github.com/henrymanke/gitag/blob/main/README.md#contributing---license)
 
 ---
 
